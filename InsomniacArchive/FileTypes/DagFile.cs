@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace InsomniacArchive.FileTypes
 {
-    public class DagFile
+    /// <summary>
+    /// Directed acyclic graph file. Not really sure how to parse these data.
+    /// </summary>
+    internal class DagFile
     {
         private const uint DAG_COMPRESSED_SIGNATURE = 0x891F77AFu; // ????
         private const uint DAG_DECOMPRESSED_SIGNATURE = 0x44415431u; // DAT1
@@ -28,7 +31,7 @@ namespace InsomniacArchive.FileTypes
         {
             MemoryStream ms;
 
-            using (var file = System.IO.File.OpenRead(path))
+            using (var file = File.OpenRead(path))
             {
                 ms = DecompressDag(file);
             }
@@ -41,7 +44,7 @@ namespace InsomniacArchive.FileTypes
 
         private void SaveFile(string path)
         {
-
+            throw new NotImplementedException();
         }
 
         private void Load(BinaryReader br)
@@ -49,13 +52,13 @@ namespace InsomniacArchive.FileTypes
             Header = br.ReadStruct<DatHeader>();
 
             if (Header.magic != DAG_DECOMPRESSED_SIGNATURE)
-                throw new IOException($"Invalid TOC signature 0x{Header.magic:08X}, expected 0x{DAG_DECOMPRESSED_SIGNATURE:08X}");
+                throw new IOException($"Invalid DAG signature 0x{Header.magic:08X}, expected 0x{DAG_DECOMPRESSED_SIGNATURE:08X}");
 
             TocSectionEntry[] tocSectionEntries = br.ReadStructArray<TocSectionEntry>(Header.sectionCount * 12);
 
             string dependencyDag = br.ReadFixedLengthAsciiString(0x0E);
             if (dependencyDag != "DependencyDag")
-                throw new IOException($"Invalid TOC signature string '{dependencyDag}', expected 'DependencyDag'");
+                throw new IOException($"Invalid DAG signature string '{dependencyDag}', expected 'DependencyDag'");
 
             br.BaseStream.Position = tocSectionEntries[0].offset;
             flags = br.ReadBytes(tocSectionEntries[0].size);

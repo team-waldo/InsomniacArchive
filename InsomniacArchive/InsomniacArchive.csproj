@@ -8,5 +8,11 @@
   <ItemGroup>
     <PackageReference Include="K4os.Compression.LZ4" Version="1.2.16" />
   </ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>InsomniacArchiveTest</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 	
 </Project>

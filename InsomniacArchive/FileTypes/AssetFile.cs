@@ -13,6 +13,7 @@ namespace InsomniacArchive.FileTypes
 
         internal static byte[] DecompressAsset(string path)
         {
+            int compSize;
             int rawsize;
             byte[] compressed;
 
@@ -20,16 +21,21 @@ namespace InsomniacArchive.FileTypes
             using (var br = new BinaryReader(file))
             {
                 uint magic = br.ReadUInt32();
+                compSize = (int)file.Length - 0x24;
                 rawsize = br.ReadInt32();
 
                 file.Position = 0x24;
-                compressed = new byte[file.Length - 0x24];
+                compressed = new byte[compSize];
                 file.Read(compressed);
             }
 
-            byte[] decompressed = new byte[rawsize];
+            if (compSize == rawsize)
+            {
+                return compressed;
+            }
 
-            K4os.Compression.LZ4.LZ4Codec.Decode(compressed, decompressed);
+            byte[] decompressed = new byte[rawsize];
+            K4os.Compression.LZ4.LZ4Codec.Decode(compressed, 0, compSize, decompressed, 0, rawsize);
 
             return decompressed;
         }
@@ -53,17 +59,25 @@ namespace InsomniacArchive.FileTypes
 
         protected override void DecompressData(Stream input, MemoryStream output)
         {
+            int compSize;
             int rawsize;
             byte[] compressed;
 
             using (var br = new BinaryReader(input))
             {
                 Id = br.ReadUInt32();
+                compSize = (int)input.Length - 0x24;
                 rawsize = br.ReadInt32();
 
                 input.Position = 0x24;
                 compressed = new byte[input.Length - 0x24];
                 input.Read(compressed);
+            }
+
+            if (compSize == rawsize)
+            {
+                output.Write(compressed);
+                return;
             }
 
             byte[] decompressed = new byte[rawsize];

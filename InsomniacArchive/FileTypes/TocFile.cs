@@ -80,22 +80,6 @@ namespace InsomniacArchive.FileTypes
             keyAssetHashArray = GetSection<KeyAssetHashSection>().Data;
             chunkInfoArray = GetSection<ChunkInfoSection>().Data;
             GroupDataArray = GetSection<GroupSection>().Data;
-
-            for (int i = 0; i < nameHashArray.Length; i++)
-            {
-                var file = fileChunkDataArray[i];
-                var chunk = chunkInfoArray[file.chunkArrayIndex];
-                var archive = archiveFileArray[chunk.archiveFileNo];
-                string filename = archive.FileName;
-                int dotIndex = filename.IndexOf('.');
-                if (dotIndex == -1)
-                    continue;
-                string lang = filename.Substring(dotIndex + 1);
-
-                int groupIndex = GetGroupIndex(i);
-                if (!languageMap.ContainsKey(groupIndex))
-                    languageMap[groupIndex] = lang;
-            }
         }
 
         public class ArchiveFileSection : StructSection<ArchiveFileStruct>
@@ -112,7 +96,7 @@ namespace InsomniacArchive.FileTypes
             public byte unk03;
             public ushort unk04;
             public ushort unk06;
-            private fixed byte _fileName[16];
+            private fixed byte _fileName[0x40];
 
             public string FileName
             {
@@ -141,6 +125,8 @@ namespace InsomniacArchive.FileTypes
 
         public record class ArchiveFileEntry : IBinarySerializable
         {
+            private const int FILENAME_LENGTH = 0x40;
+
             public ushort flag;
             public byte unk02;
             public byte unk03;
@@ -155,7 +141,7 @@ namespace InsomniacArchive.FileTypes
                 unk03 = br.ReadByte();
                 unk04 = br.ReadUInt16();
                 unk06 = br.ReadUInt16();
-                fileName = br.ReadFixedLengthAsciiString(16);
+                fileName = br.ReadFixedLengthAsciiString(FILENAME_LENGTH);
             }
 
             public void Save(BinaryWriter bw)
@@ -165,7 +151,7 @@ namespace InsomniacArchive.FileTypes
                 bw.Write(unk03);
                 bw.Write(unk04);
                 bw.Write(unk06);
-                bw.WriteFixedLengthString(fileName, 16);
+                bw.WriteFixedLengthString(fileName, FILENAME_LENGTH);
             }
         }
 

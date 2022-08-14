@@ -24,16 +24,16 @@ namespace InsomniacArchive.FileTypes
             if (Header.magic != DatHeader.DAT_SIGNATURE)
                 throw new IOException($"Invalid DAT signature 0x{Header.magic:08X}, expected 0x{DatHeader.DAT_SIGNATURE:08X}");
 
-            DatSectionInfo[] tocSectionInfos = br.ReadStructArray<DatSectionInfo>(Header.sectionCount * Marshal.SizeOf<DatSectionInfo>());
+            DatSectionInfo[] datSectionInfos = br.ReadStructArray<DatSectionInfo>(Header.sectionCount * Marshal.SizeOf<DatSectionInfo>());
             string sig = br.ReadStringToNull();
             if (sig != Signature)
             {
                 throw new IOException($"Invalid DAT signature string '{sig}', expected '{Signature}'");
             }
 
-            Array.Sort(tocSectionInfos, (a, b) => (a.offset < b.offset) ? -1 : 1);
+            Array.Sort(datSectionInfos, (a, b) => (a.offset < b.offset) ? -1 : 1);
 
-            foreach (var sectionInfo in tocSectionInfos)
+            foreach (var sectionInfo in datSectionInfos)
             {
                 var section = SectionManager.ReadSection(br, sectionInfo);
                 Sections.Add(section);

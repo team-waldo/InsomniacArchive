@@ -42,23 +42,12 @@ namespace InsomniacArchive
             var chunk = Toc.chunkInfoArray[fileChunkData.chunkArrayIndex];
             var archive = Toc.archiveFileArray[chunk.archiveFileNo];
 
-            int bytes = fileChunkData.totalSize;
+            int fileSize = fileChunkData.totalSize;
 
             var archivePath = GetFilePath(archive.FileName);
 
-            using (var archiveFile = File.OpenRead(archivePath))
-            using (var outputFile = File.Create(outputPath))
-            {
-                archiveFile.Position = chunk.offset;
-
-                byte[] buffer = new byte[0x8000];
-                int read;
-                while (bytes > 0 && (read = archiveFile.Read(buffer, 0, Math.Min(buffer.Length, bytes))) > 0)
-                {
-                    outputFile.Write(buffer, 0, read);
-                    bytes -= read;
-                }
-            }
+            ChunkedArchiveFile archiveFile = new(archivePath);
+            archiveFile.ExtractFileToPath(outputPath, chunk.offset, fileSize);
         }
 
         public void ReplaceFile(int index, IAssetReplacer replacer)
@@ -70,29 +59,28 @@ namespace InsomniacArchive
         {
             Dictionary<string, Stream> newArchivesDict = new();
 
-            Stream GetNewArchiveStream(string name)
+            string newArchivePath = Path.Combine(outputDirectory, "patch.archive");
+            Stream newArchiveStream = File.Create(newArchivePath);
+
+            var archiveFileArray = Toc.archiveFileArray;
+            Array.Resize(ref archiveFileArray, archiveFileArray.Length + 1);
+
+            var newArchiveFileEntry = new TocFile.ArchiveFileStruct()
             {
-                if (newArchivesDict.TryGetValue(name, out Stream opened))
-                {
-                    return opened;
-                }
+                flag = 2,
+                unk02 = 0,
+                unk03 = 0,
+                unk04 = 0xCCCC,
+                unk06 = 1,
+                FileName = "patch.archive",
+            };
 
-                string newArchivePath = Path.Combine(outputDirectory, name);
-                File.Copy(GetFilePath(name), newArchivePath, true);
-
-                Stream newArchiveStream = File.OpenWrite(newArchivePath);
-                newArchiveStream.Seek(0, SeekOrigin.End);
-
-                newArchivesDict.Add(name, newArchiveStream);
-
-                return newArchiveStream;
-            }
+            archiveFileArray[^1] = newArchiveFileEntry;
+            Toc.GetSection<TocFile.ArchiveFileSection>().Data = archiveFileArray;
 
             foreach (var replacerPair in replacerDict)
             {
                 int index = replacerPair.Key;
-
-                int group = Toc.GetGroupIndex(index);
                 IAssetReplacer replacer = replacerPair.Value;
 
                 TocFile.FileChunkDataEntry fileChunkData = Toc.fileChunkDataArray[index];
@@ -101,9 +89,9 @@ namespace InsomniacArchive
 
                 TocFile.ChunkInfoEntry chunkInfo = Toc.chunkInfoArray[fileChunkData.chunkArrayIndex];
 
-                string archiveName = Toc.archiveFileArray[chunkInfo.archiveFileNo].FileName;
-                Stream outputFileStream = GetNewArchiveStream(archiveName);
+                Stream outputFileStream = newArchiveStream;
 
+                chunkInfo.archiveFileNo = archiveFileArray.Length - 1;
                 chunkInfo.offset = (uint)outputFileStream.Position;
                 Toc.chunkInfoArray[fileChunkData.chunkArrayIndex] = chunkInfo;
 
