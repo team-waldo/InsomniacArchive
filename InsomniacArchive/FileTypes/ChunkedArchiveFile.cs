@@ -190,9 +190,6 @@ namespace InsomniacArchive.FileTypes
                     throw new IOException("Failed to decompress the chunk.");
                 }
 
-                File.WriteAllBytes($"chunks/chunk_{chunkIndex}.bin", chunkCompressedBuffer[..newChunk.chunkCompressedSize]);
-                File.WriteAllBytes($"chunks/chunk_{chunkIndex}.dec", chunkDecompressedBuffer[..newChunk.chunkDecompressedSize]);
-
                 currentChunkIndex = chunkIndex;
             }
 

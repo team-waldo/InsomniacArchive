@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using InsomniacArchive.FileTypes;
+using InsomniacArchive.Hash;
 
 namespace InsomniacArchive
 {
@@ -31,6 +32,22 @@ namespace InsomniacArchive
         }
 
         internal string GetFilePath(string fileName) => Path.Combine(DirectoryPath, fileName);
+
+        public void ExtractAll(string name, string outputPath)
+        {
+            ulong hash = Crc64.CalcHash(name);
+
+            foreach (int index in Toc.nameHashArray.Select((b, i) => b == hash ? i : -1).Where(i => i != -1))
+            {
+                ExtractFile(index, Path.Combine(outputPath, $"{name}.{index}"));
+            }
+        }
+
+        public List<int> GetAllAssetIndex(string name)
+        {
+            ulong hash = Crc64.CalcHash(name);
+            return Toc.nameHashArray.Select((b, i) => b == hash ? i : -1).Where(i => i != -1).ToList();
+        }
 
         public void ExtractFile(int index, string outputPath)
         {
@@ -65,7 +82,7 @@ namespace InsomniacArchive
             var archiveFileArray = Toc.archiveFileArray;
             Array.Resize(ref archiveFileArray, archiveFileArray.Length + 1);
 
-            var newArchiveFileEntry = new TocFile.ArchiveFileStruct()
+            var newArchiveFileEntry = new TocFile.ArchiveFileEntry()
             {
                 flag = 2,
                 unk02 = 0,

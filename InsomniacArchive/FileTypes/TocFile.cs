@@ -17,12 +17,12 @@ namespace InsomniacArchive.FileTypes
 
         protected override string Signature => "ArchiveTOC";
 
-        internal ArchiveFileStruct[] archiveFileArray;
+        internal ArchiveFileEntry[] archiveFileArray;
         internal ulong[] nameHashArray;
         internal FileChunkDataEntry[] fileChunkDataArray;
         internal ulong[] keyAssetHashArray;
         internal ChunkInfoEntry[] chunkInfoArray;
-        internal GroupEntry[] GroupDataArray;
+        internal SpanEntry[] GroupDataArray;
 
         internal Dictionary<int, string> languageMap = new();
 
@@ -79,24 +79,26 @@ namespace InsomniacArchive.FileTypes
             fileChunkDataArray = GetSection<FileChunkDataSection>().Data;
             keyAssetHashArray = GetSection<KeyAssetHashSection>().Data;
             chunkInfoArray = GetSection<ChunkInfoSection>().Data;
-            GroupDataArray = GetSection<GroupSection>().Data;
+            GroupDataArray = GetSection<SpanSection>().Data;
         }
 
-        public class ArchiveFileSection : StructSection<ArchiveFileStruct>
+        public class ArchiveFileSection : StructSection<ArchiveFileEntry>
         {
             public override uint Id => 0x398abff0;
         }
 
         [DebuggerDisplay("{flag},{unk02},{unk03},{unk04},{unk06},{FileName}")]
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-        public unsafe struct ArchiveFileStruct
+        public unsafe struct ArchiveFileEntry
         {
+            private const int FILENAME_LENGTH = 0x40;
+
             public ushort flag;
             public byte unk02;
             public byte unk03;
             public ushort unk04;
             public ushort unk06;
-            private fixed byte _fileName[0x40];
+            private fixed byte _fileName[FILENAME_LENGTH];
 
             public string FileName
             {
@@ -113,7 +115,7 @@ namespace InsomniacArchive.FileTypes
                     fixed (byte* p = _fileName)
                     {
                         byte[] data = Encoding.ASCII.GetBytes(value);
-                        if (data.Length >= 16)
+                        if (data.Length >= FILENAME_LENGTH)
                             throw new ArgumentException("FileName is too long");
 
                         Marshal.Copy(data, 0, (IntPtr)p, data.Length);
@@ -123,37 +125,37 @@ namespace InsomniacArchive.FileTypes
             }
         }
 
-        public record class ArchiveFileEntry : IBinarySerializable
-        {
-            private const int FILENAME_LENGTH = 0x40;
+        //public record class ArchiveFileEntry : IBinarySerializable
+        //{
+        //    private const int FILENAME_LENGTH = 0x40;
 
-            public ushort flag;
-            public byte unk02;
-            public byte unk03;
-            public ushort unk04;
-            public ushort unk06;
-            public string fileName = string.Empty;
+        //    public ushort flag;
+        //    public byte unk02;
+        //    public byte unk03;
+        //    public ushort unk04;
+        //    public ushort unk06;
+        //    public string fileName = string.Empty;
 
-            public void Load(BinaryReader br)
-            {
-                flag = br.ReadUInt16();
-                unk02 = br.ReadByte();
-                unk03 = br.ReadByte();
-                unk04 = br.ReadUInt16();
-                unk06 = br.ReadUInt16();
-                fileName = br.ReadFixedLengthAsciiString(FILENAME_LENGTH);
-            }
+        //    public void Load(BinaryReader br)
+        //    {
+        //        flag = br.ReadUInt16();
+        //        unk02 = br.ReadByte();
+        //        unk03 = br.ReadByte();
+        //        unk04 = br.ReadUInt16();
+        //        unk06 = br.ReadUInt16();
+        //        fileName = br.ReadFixedLengthAsciiString(FILENAME_LENGTH);
+        //    }
 
-            public void Save(BinaryWriter bw)
-            {
-                bw.Write(flag);
-                bw.Write(unk02);
-                bw.Write(unk03);
-                bw.Write(unk04);
-                bw.Write(unk06);
-                bw.WriteFixedLengthString(fileName, FILENAME_LENGTH);
-            }
-        }
+        //    public void Save(BinaryWriter bw)
+        //    {
+        //        bw.Write(flag);
+        //        bw.Write(unk02);
+        //        bw.Write(unk03);
+        //        bw.Write(unk04);
+        //        bw.Write(unk06);
+        //        bw.WriteFixedLengthString(fileName, FILENAME_LENGTH);
+        //    }
+        //}
 
         public class NameHashSection : StructSection<ulong>
         {
@@ -188,12 +190,12 @@ namespace InsomniacArchive.FileTypes
             public int chunkArrayIndex;
         }
 
-        public class GroupSection : StructSection<GroupEntry>
+        public class SpanSection : StructSection<SpanEntry>
         {
             public override uint Id => 0xEDE8_ADA9;
         }
 
-        public record struct GroupEntry
+        public record struct SpanEntry
         {
             public uint offset;
             public uint size;
