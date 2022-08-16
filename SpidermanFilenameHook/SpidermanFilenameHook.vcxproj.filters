@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="MinHook\buffer.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\hook.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\trampoline.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\hde\hde32.c">
+      <Filter>MinHook\Hde</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\hde\hde64.c">
+      <Filter>MinHook\Hde</Filter>
+    </ClCompile>
+    <ClCompile Include="proxy.cpp">
+      <Filter>ProxyDll</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="MinHook\buffer.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\MinHook.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\trampoline.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\hde\hde32.h">
+      <Filter>MinHook\Hde</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\hde\hde64.h">
+      <Filter>MinHook\Hde</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\hde\table32.h">
+      <Filter>MinHook\Hde</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\hde\table64.h">
+      <Filter>MinHook\Hde</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\hde\pstdint.h">
+      <Filter>MinHook\Hde</Filter>
+    </ClInclude>
+    <ClInclude Include="proxy.h">
+      <Filter>ProxyDll</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="MinHook">
+      <UniqueIdentifier>{a560e80c-d0ef-4eea-abdc-74bc12ac41ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinHook\Hde">
+      <UniqueIdentifier>{7a67f946-e5d3-499e-8eb5-a99a4b2f5838}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ProxyDll">
+      <UniqueIdentifier>{b19e888c-5b9f-4ea9-bfa7-73969731290a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="dbghelp.asm">
+      <Filter>ProxyDll</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dbghelp.def">
+      <Filter>ProxyDll</Filter>
+    </None>
+  </ItemGroup>
+</Project>
