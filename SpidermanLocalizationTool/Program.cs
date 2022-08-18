@@ -5,6 +5,7 @@ using System.Text;
 
 using InsomniacArchive;
 using InsomniacArchive.FileTypes;
+using System.Xml.Linq;
 
 namespace SpidermanLocalizationTool
 {
@@ -13,7 +14,7 @@ namespace SpidermanLocalizationTool
 
 #pragma warning disable CS8618 // disable notnull check
 
-        [Verb("loc-export", HelpText = "Export localization file into csv file for translation")]
+        [Verb("export", HelpText = "Export localization file into csv file for translation")]
         private class LocExportOptions
         {
             [Value(0, HelpText = "Localization file input path", MetaName = nameof(InputPath))]
@@ -23,7 +24,7 @@ namespace SpidermanLocalizationTool
             public string OutputPath { get; set; }
         }
 
-        [Verb("loc-import", HelpText = "Import translated csv file into original localization file")]
+        [Verb("import", HelpText = "Import translated csv file into original localization file")]
         private class LocImportOptions
         {
             [Value(0, HelpText = "Localization file input path", MetaName = nameof(InputPath))]
@@ -49,6 +50,18 @@ namespace SpidermanLocalizationTool
             public string OutputPath { get; set; }
         }
 
+        [Verb("arc-extract-all", HelpText = "Extract file from the archive files")]
+        private class ArchiveExtractAllOptions
+        {
+            [Value(0, HelpText = "Game archive files input directory", MetaName = nameof(InputDirectory))]
+            public string InputDirectory { get; set; }
+
+            [Value(1, HelpText = "Name of the asset to extract", MetaName = nameof(AssetName))]
+            public string AssetName { get; set; }
+
+            [Value(2, HelpText = "Path to save extracted asset file", MetaName = nameof(OutputDirectory))]
+            public string OutputDirectory { get; set; }
+        }
 
         [Verb("arc-import", HelpText = "Import file into the archive file")]
         private class ArchiveImportOptions
@@ -130,6 +143,21 @@ namespace SpidermanLocalizationTool
             return 0;
         }
 
+        private static int ArchiveExtractAll(ArchiveExtractAllOptions opt)
+        {
+            ArchiveDirectory dir = new(opt.InputDirectory);
+
+            foreach (int index in dir.GetAllAssetIndex(opt.AssetName))
+            {
+                string path = Path.Combine(opt.OutputDirectory, $"{opt.AssetName}.{index}");
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                dir.ExtractFile(index, path);
+                Console.WriteLine($"Extracted {path}");
+            }
+
+            return 0;
+        }
+
         private static int ArchiveImport(ArchiveImportOptions opt)
         {
             ArchiveDirectory dir = new(opt.InputDirectory);
@@ -145,13 +173,22 @@ namespace SpidermanLocalizationTool
             return 0;
         }
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            Parser.Default.ParseArguments<LocExportOptions, LocImportOptions, ArchiveExtractOptions, ArchiveImportOptions>(args)
+            return Parser.Default.ParseArguments<LocExportOptions, LocImportOptions>(args)
+                .MapResult(
+                    (LocExportOptions opt) => LocExport(opt),
+                    (LocImportOptions opt) => LocImport(opt),
+                    errs => 1
+                );
+
+
+            Parser.Default.ParseArguments<LocExportOptions, LocImportOptions, ArchiveExtractOptions, ArchiveExtractAllOptions, ArchiveImportOptions>(args)
                 .MapResult(
                     (LocExportOptions opt) => LocExport(opt),
                     (LocImportOptions opt) => LocImport(opt),
                     (ArchiveExtractOptions opt) => ArchiveExtract(opt),
+                    (ArchiveExtractAllOptions opt) => ArchiveExtractAll(opt),
                     (ArchiveImportOptions opt) => ArchiveImport(opt),
                     errs => 1
                 );

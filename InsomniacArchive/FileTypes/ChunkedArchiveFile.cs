@@ -163,13 +163,17 @@ namespace InsomniacArchive.FileTypes
                     throw new ArgumentOutOfRangeException(nameof(offset));
                 }
 
-                SeekInternal(absoluteOffset);
+                SeekAbsolute(absoluteOffset);
                 return virtualPosition;
             }
 
-            private void SeekInternal(long offset)
+            private void SeekAbsolute(long offset)
             {
                 int chunkIndex = Array.FindIndex(chunks, x => x.virtualOffset + x.chunkDecompressedSize > offset);
+                if (chunkIndex < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(offset));
+                }
                 LoadChunk(chunkIndex);
                 virtualPosition = offset;
             }
@@ -358,12 +362,7 @@ namespace InsomniacArchive.FileTypes
 
         internal record struct DsarHeader
         {
-            public const uint DSAR_MAGIC = 0x52415344u;
-            public const short DEFAULT_UNK04 = 0x0003;
-            public const short DEFAULT_UNK06 = 0x0001;
-            public const long DEFAULT_PADDING = 0x2A474E4944444150;
-
-            public uint magic;
+            public uint magic;  // 0x52415344u = 'DSAR'
             public short unk04; // 0x0003
             public short unk06; // 0x0001
             public int chunkCount;

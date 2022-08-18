@@ -24,7 +24,7 @@ namespace InsomniacArchive.Section
         internal override void Read(BinaryReader br, DatSectionInfo sectionInfo)
         {
             br.BaseStream.Position = sectionInfo.offset;
-            Data = ReadInternal(br, sectionInfo.size);
+            Data = ReadImpl(br, sectionInfo.size);
         }
 
         internal override DatSectionInfo Write(BinaryWriter bw)
@@ -35,12 +35,12 @@ namespace InsomniacArchive.Section
 
             sectionInfo.id = Id;
             sectionInfo.offset = (int)bw.BaseStream.Position;
-            sectionInfo.size = WriteInternal(bw, Data);
+            sectionInfo.size = WriteImpl(bw, Data);
 
             return sectionInfo;
         }
 
-        protected abstract T[] ReadInternal(BinaryReader br, int totalSize);
-        protected abstract int WriteInternal(BinaryWriter bw, T[] data);
+        protected abstract T[] ReadImpl(BinaryReader br, int totalSize);
+        protected abstract int WriteImpl(BinaryWriter bw, T[] data);
     }
 }

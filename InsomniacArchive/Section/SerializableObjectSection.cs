@@ -9,7 +9,7 @@ namespace InsomniacArchive.Section
 {
     internal abstract class SerializableObjectSection<T> : GenericSection<T> where T : IBinarySerializable, new()
     {
-        protected override T[] ReadInternal(BinaryReader br, int totalSize)
+        protected override T[] ReadImpl(BinaryReader br, int totalSize)
         {
             List<T> result = new();
 
@@ -26,7 +26,7 @@ namespace InsomniacArchive.Section
             return result.ToArray();
         }
 
-        protected override int WriteInternal(BinaryWriter bw, T[] data)
+        protected override int WriteImpl(BinaryWriter bw, T[] data)
         {
             long startPos = bw.BaseStream.Position;
 

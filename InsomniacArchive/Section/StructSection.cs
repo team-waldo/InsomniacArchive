@@ -9,12 +9,12 @@ namespace InsomniacArchive.Section
 {
     public abstract class StructSection<T> : GenericSection<T> where T : struct
     {
-        protected override T[] ReadInternal(BinaryReader br, int totalSize)
+        protected override T[] ReadImpl(BinaryReader br, int totalSize)
         {
             return br.ReadStructArray<T>(totalSize);
         }
 
-        protected override int WriteInternal(BinaryWriter bw, T[] data)
+        protected override int WriteImpl(BinaryWriter bw, T[] data)
         {
             return bw.WriteStructArray<T>(data);
         }
