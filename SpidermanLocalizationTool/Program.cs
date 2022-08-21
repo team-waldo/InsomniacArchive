@@ -69,14 +69,11 @@ namespace SpidermanLocalizationTool
             [Value(0, HelpText = "Game archive files input directory", MetaName = nameof(InputDirectory))]
             public string InputDirectory { get; set; }
 
-            [Value(1, HelpText = "Index of the asset to replace", MetaName = nameof(AssetIndex))]
-            public int AssetIndex { get; set; }
-
-            [Value(2, HelpText = "Asset file path", MetaName = nameof(AssetPath))]
-            public string AssetPath { get; set; }
-
-            [Value(3, HelpText = "Path to save imported archive files", MetaName = nameof(OutputDirectory))]
+            [Value(1, HelpText = "Path to save imported archive files", MetaName = nameof(OutputDirectory))]
             public string OutputDirectory { get; set; }
+
+            [Value(2, HelpText = "Assets to replace in asset_number:asset_path format")]
+            public IEnumerable<string> Replace { get; set; }
         }
 
 #pragma warning restore CS8618
@@ -162,9 +159,23 @@ namespace SpidermanLocalizationTool
         {
             ArchiveDirectory dir = new(opt.InputDirectory);
 
-            dir.ReplaceFile(opt.AssetIndex, new FilePathAssetReplacer(opt.AssetPath));
+            foreach (var replaceStr in opt.Replace)
+            {
+                string[] parts = replaceStr.Split(':');
+                if (parts.Length != 2)
+                {
+                    Console.WriteLine($"Invalid replace argumet {replaceStr}");
+                    Console.WriteLine("Aborting...");
+                    return 1;
+                }
 
-            Console.WriteLine($"Replaced asset {opt.AssetIndex} with {opt.AssetPath}");
+                int assetIndex = int.Parse(parts[0]);
+                string assetFilePath = parts[1];
+
+                dir.ReplaceFile(assetIndex, new FilePathAssetReplacer(assetFilePath));
+
+                Console.WriteLine($"Replaced asset {assetIndex} with {assetFilePath}");
+            }
 
             dir.SaveArchives(opt.OutputDirectory);
 
@@ -175,15 +186,7 @@ namespace SpidermanLocalizationTool
 
         static int Main(string[] args)
         {
-            return Parser.Default.ParseArguments<LocExportOptions, LocImportOptions>(args)
-                .MapResult(
-                    (LocExportOptions opt) => LocExport(opt),
-                    (LocImportOptions opt) => LocImport(opt),
-                    errs => 1
-                );
-
-
-            Parser.Default.ParseArguments<LocExportOptions, LocImportOptions, ArchiveExtractOptions, ArchiveExtractAllOptions, ArchiveImportOptions>(args)
+            return Parser.Default.ParseArguments<LocExportOptions, LocImportOptions, ArchiveExtractOptions, ArchiveExtractAllOptions, ArchiveImportOptions>(args)
                 .MapResult(
                     (LocExportOptions opt) => LocExport(opt),
                     (LocImportOptions opt) => LocImport(opt),
