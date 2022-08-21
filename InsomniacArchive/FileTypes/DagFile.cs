@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InsomniacArchive.IO;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -36,7 +37,7 @@ namespace InsomniacArchive.FileTypes
                 ms = DecompressDag(file);
             }
 
-            using (var br = new BinaryReader(ms))
+            using (var br = new ExtendedBinaryReader(ms))
             {
                 Load(br);
             }
@@ -47,7 +48,7 @@ namespace InsomniacArchive.FileTypes
             throw new NotImplementedException();
         }
 
-        private void Load(BinaryReader br)
+        private void Load(ExtendedBinaryReader br)
         {
             Header = br.ReadStruct<DatHeader>();
 

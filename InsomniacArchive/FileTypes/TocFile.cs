@@ -1,4 +1,5 @@
-﻿using InsomniacArchive.Section;
+﻿using InsomniacArchive.IO;
+using InsomniacArchive.Section;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -70,7 +71,7 @@ namespace InsomniacArchive.FileTypes
             return -1;
         }
 
-        protected override void Load(BinaryReader br)
+        protected override void Load(DatBinaryReader br)
         {
             base.Load(br);
 

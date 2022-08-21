@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace InsomniacArchive
 {
-    internal interface IBinarySerializable
+    public interface IBinarySerializable
     {
         public void Load(BinaryReader br);
 

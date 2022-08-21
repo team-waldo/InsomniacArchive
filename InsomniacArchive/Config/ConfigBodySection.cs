@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InsomniacArchive
+namespace InsomniacArchive.Config
 {
-    internal static class IOExtensions
+    internal class ConfigBodySection : ConfigSection
     {
+        public override uint Id => 0xE501186Fu;
     }
 }

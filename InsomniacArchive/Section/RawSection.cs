@@ -1,4 +1,5 @@
 ﻿using InsomniacArchive.FileTypes;
+using InsomniacArchive.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +15,7 @@ namespace InsomniacArchive.Section
 
         public uint OverrideId { get; private set; } = 0;
 
-        internal override void Read(BinaryReader br, DatSectionInfo sectionInfo)
+        internal override void Read(DatBinaryReader br, DatSectionInfo sectionInfo)
         {
             base.Read(br, sectionInfo);
             OverrideId = sectionInfo.id;

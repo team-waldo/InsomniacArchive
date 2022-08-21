@@ -1,4 +1,6 @@
-﻿using InsomniacArchive.Section;
+﻿using InsomniacArchive.Hash;
+using InsomniacArchive.IO;
+using InsomniacArchive.Section;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,11 +17,24 @@ namespace InsomniacArchive.FileTypes
 
         protected List<BaseSection> Sections = new ();
 
-        internal List<string> StringLiterals = new();
+        private List<string> StringLiterals = new();
+
+        private Dictionary<uint, string> StringLiteralMap = new();
 
         protected abstract string Signature { get; }
 
-        protected virtual void Load(BinaryReader br)
+        internal string GetStringLiteral(uint hash)
+        {
+            return StringLiteralMap[hash];
+        }
+
+        internal void AddStringLiteral(string value)
+        {
+            StringLiterals.Add(value);
+            StringLiteralMap[Crc32.CalcHash(value)] = value;
+        }
+
+        protected virtual void Load(DatBinaryReader br)
         {
             Header = br.ReadStruct<DatHeader>();
 
@@ -32,8 +47,9 @@ namespace InsomniacArchive.FileTypes
                 string literal = br.ReadStringToNull();
                 if (string.IsNullOrEmpty(literal))
                     break;
-                StringLiterals.Add(literal);
+                AddStringLiteral(literal);
             }
+
             if (StringLiterals[0] != Signature)
             {
                 throw new IOException($"Invalid DAT signature string '{StringLiterals[0]}', expected '{Signature}'");
@@ -70,7 +86,7 @@ namespace InsomniacArchive.FileTypes
             throw new ArgumentException($"Section with id {id} is not found.");
         }
 
-        protected virtual void Save(BinaryWriter bw)
+        protected virtual void Save(DatBinaryWriter bw)
         {
             bw.WriteStruct(Header);
 
@@ -118,7 +134,7 @@ namespace InsomniacArchive.FileTypes
 
             ms.Seek(0, SeekOrigin.Begin);
 
-            var br = new BinaryReader(ms);
+            var br = new DatBinaryReader(ms, this);
             Load(br);
         }
 
@@ -133,7 +149,7 @@ namespace InsomniacArchive.FileTypes
 
             ms.Seek(0, SeekOrigin.Begin);
 
-            var br = new BinaryReader(ms);
+            var br = new DatBinaryReader(ms, this);
             Load(br);
         }
 
@@ -141,10 +157,8 @@ namespace InsomniacArchive.FileTypes
         {
             MemoryStream ms = new();
 
-            using (var bw = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true))
-            {
-                Save(bw);
-            }
+            var bw = new DatBinaryWriter(ms, this);
+            Save(bw);
 
 #if DEBUG
             File.WriteAllBytes(path + ".raw", ms.ToArray());
@@ -160,11 +174,9 @@ namespace InsomniacArchive.FileTypes
         {
             MemoryStream ms = new();
 
-            using (var bw = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true))
-            {
-                Save(bw);
-            }
-
+            var bw = new DatBinaryWriter(ms, this);
+            Save(bw);
+            
             ms.Seek(0, SeekOrigin.Begin);
 
             var outputStream = new MemoryStream();

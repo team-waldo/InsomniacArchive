@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InsomniacArchive.IO;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace InsomniacArchive.FileTypes
         {
             Stream archiveBaseStream = File.OpenRead(path);
 
-            var br = new BinaryReader(archiveBaseStream);
+            var br = new ExtendedBinaryReader(archiveBaseStream);
             header = br.ReadStruct<DsarHeader>();
             chunks = br.ReadStructArray<DsarChunkEntry>(header.chunkCount * Marshal.SizeOf<DsarChunkEntry>());
 

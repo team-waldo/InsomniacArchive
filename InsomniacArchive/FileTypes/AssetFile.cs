@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InsomniacArchive.IO;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace InsomniacArchive.FileTypes
 
         protected override void CompressData(MemoryStream input, Stream output)
         {
-            BinaryWriter bw = new(output);
+            ExtendedBinaryWriter bw = new(output);
 
             bw.Write(AssetId);
             bw.Write(input.Length);

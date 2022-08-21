@@ -1,4 +1,5 @@
 ﻿using InsomniacArchive.FileTypes;
+using InsomniacArchive.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +37,7 @@ namespace InsomniacArchive.Section
             }
         }
 
-        public static BaseSection ReadSection(BinaryReader br, DatSectionInfo sectionInfo)
+        public static BaseSection ReadSection(DatBinaryReader br, DatSectionInfo sectionInfo)
         {
             uint id = sectionInfo.id;
 

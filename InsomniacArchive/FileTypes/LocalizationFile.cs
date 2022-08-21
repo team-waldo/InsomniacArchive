@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-
+using InsomniacArchive.IO;
 using InsomniacArchive.Section;
 
 namespace InsomniacArchive.FileTypes
@@ -44,7 +44,7 @@ namespace InsomniacArchive.FileTypes
             var stringData = GetSection<TranslationDataSection>();
 
             MemoryStream newStringData = new();
-            BinaryWriter bw = new (newStringData);
+            ExtendedBinaryWriter bw = new (newStringData);
 
             int[] newStringOffsetArray = new int[stringOffset.Data.Length];
             int importedCount = 0;
