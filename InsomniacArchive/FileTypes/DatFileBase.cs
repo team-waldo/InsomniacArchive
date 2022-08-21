@@ -15,6 +15,8 @@ namespace InsomniacArchive.FileTypes
 
         protected List<BaseSection> Sections = new ();
 
+        internal List<string> StringLiterals = new();
+
         protected abstract string Signature { get; }
 
         protected virtual void Load(BinaryReader br)
@@ -25,10 +27,16 @@ namespace InsomniacArchive.FileTypes
                 throw new IOException($"Invalid DAT signature 0x{Header.magic:08X}, expected 0x{DatHeader.DAT_SIGNATURE:08X}");
 
             DatSectionInfo[] datSectionInfos = br.ReadStructArray<DatSectionInfo>(Header.sectionCount * Marshal.SizeOf<DatSectionInfo>());
-            string sig = br.ReadStringToNull();
-            if (sig != Signature)
+            while (true)
             {
-                throw new IOException($"Invalid DAT signature string '{sig}', expected '{Signature}'");
+                string literal = br.ReadStringToNull();
+                if (string.IsNullOrEmpty(literal))
+                    break;
+                StringLiterals.Add(literal);
+            }
+            if (StringLiterals[0] != Signature)
+            {
+                throw new IOException($"Invalid DAT signature string '{StringLiterals[0]}', expected '{Signature}'");
             }
 
             Array.Sort(datSectionInfos, (a, b) => (a.offset < b.offset) ? -1 : 1);
@@ -50,6 +58,16 @@ namespace InsomniacArchive.FileTypes
                     return (T)item;
             }
             throw new ArgumentException($"Section with type {typeof(T)} is not found.");
+        }
+
+        internal BaseSection GetSection(uint id)
+        {
+            foreach (var item in Sections)
+            {
+                if (item.Id == id)
+                    return item;
+            }
+            throw new ArgumentException($"Section with id {id} is not found.");
         }
 
         protected virtual void Save(BinaryWriter bw)
@@ -89,21 +107,34 @@ namespace InsomniacArchive.FileTypes
         {
             MemoryStream ms = new();
 
-            using (var file = System.IO.File.OpenRead(path))
+            using (var file = File.OpenRead(path))
             {
                 DecompressData(file, ms);
             }
 
 #if DEBUG
-            System.IO.File.WriteAllBytes(path + ".raw", ms.ToArray());
+            File.WriteAllBytes(path + ".raw", ms.ToArray());
 #endif
 
             ms.Seek(0, SeekOrigin.Begin);
 
-            using (var br = new BinaryReader(ms))
+            var br = new BinaryReader(ms);
+            Load(br);
+        }
+
+        public void LoadBytes(byte[] data)
+        {
+            MemoryStream ms = new();
+
+            using (var inputStream = new MemoryStream(data))
             {
-                Load(br);
+                DecompressData(inputStream, ms);
             }
+
+            ms.Seek(0, SeekOrigin.Begin);
+
+            var br = new BinaryReader(ms);
+            Load(br);
         }
 
         public void SaveFile(string path)
@@ -116,15 +147,30 @@ namespace InsomniacArchive.FileTypes
             }
 
 #if DEBUG
-            System.IO.File.WriteAllBytes(path + ".raw", ms.ToArray());
+            File.WriteAllBytes(path + ".raw", ms.ToArray());
 #endif
 
             ms.Seek(0, SeekOrigin.Begin);
 
-            using (var file = System.IO.File.Create(path))
+            using var file = File.Create(path);
+            CompressData(ms, file);
+        }
+
+        public byte[] SaveBytes()
+        {
+            MemoryStream ms = new();
+
+            using (var bw = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true))
             {
-                CompressData(ms, file);
+                Save(bw);
             }
+
+            ms.Seek(0, SeekOrigin.Begin);
+
+            var outputStream = new MemoryStream();
+            CompressData(ms, outputStream);
+
+            return outputStream.ToArray();
         }
     }
 }

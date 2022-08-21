@@ -9,81 +9,62 @@ namespace InsomniacArchive.FileTypes
 {
     public abstract class AssetFile : DatFileBase
     {
-        private uint Id { get; set; }
+        private uint AssetId { get; set; }
 
-        internal static byte[] DecompressAsset(string path)
-        {
-            int compSize;
-            int rawsize;
-            byte[] compressed;
-
-            using (var file = File.OpenRead(path))
-            using (var br = new BinaryReader(file))
-            {
-                uint magic = br.ReadUInt32();
-                compSize = (int)file.Length - 0x24;
-                rawsize = br.ReadInt32();
-
-                file.Position = 0x24;
-                compressed = new byte[compSize];
-                file.Read(compressed);
-            }
-
-            if (compSize == rawsize)
-            {
-                return compressed;
-            }
-
-            byte[] decompressed = new byte[rawsize];
-            K4os.Compression.LZ4.LZ4Codec.Decode(compressed, 0, compSize, decompressed, 0, rawsize);
-
-            return decompressed;
-        }
+        private bool Compressed { get; set; }
 
         protected override void CompressData(MemoryStream input, Stream output)
         {
+            BinaryWriter bw = new(output);
+
+            bw.Write(AssetId);
+            bw.Write(input.Length);
+
+            bw.Pad(0x24 - (int)bw.BaseStream.Position);
+
+            if (!Compressed)
+            {
+                input.CopyTo(output);
+                return;
+            }
+
             byte[] data = input.ToArray();
             byte[] compressed = new byte[data.Length];
 
             int compSize = K4os.Compression.LZ4.LZ4Codec.Encode(data, compressed);
 
-            using (BinaryWriter bw = new(output))
-            {
-                bw.Write(Id);
-                bw.Write(data.Length);
-
-                bw.Pad(0x24 - (int)bw.BaseStream.Position);
-                bw.Write(compressed, 0, compSize);
-            }
+            bw.Write(compressed, 0, compSize);
         }
 
         protected override void DecompressData(Stream input, MemoryStream output)
         {
             int compSize;
             int rawsize;
-            byte[] compressed;
 
-            using (var br = new BinaryReader(input))
+            BinaryReader br = new(input);
+            
+            AssetId = br.ReadUInt32();
+
+            compSize = (int)input.Length - 0x24;
+            rawsize = br.ReadInt32();
+
+            Compressed = compSize != rawsize;
+
+            input.Position = 0x24;
+
+            if (!Compressed)
             {
-                Id = br.ReadUInt32();
-                compSize = (int)input.Length - 0x24;
-                rawsize = br.ReadInt32();
-
-                input.Position = 0x24;
-                compressed = new byte[input.Length - 0x24];
-                input.Read(compressed);
-            }
-
-            if (compSize == rawsize)
-            {
-                output.Write(compressed);
+                input.CopyTo(output);
                 return;
             }
 
-            byte[] decompressed = new byte[rawsize];
-            K4os.Compression.LZ4.LZ4Codec.Decode(compressed, decompressed);
+            byte[] compressedData = new byte[input.Length - 0x24];
+            input.Read(compressedData);
+            
+            byte[] decompressedData = new byte[rawsize];
+            K4os.Compression.LZ4.LZ4Codec.Decode(compressedData, decompressedData);
 
-            output.Write(decompressed);
+            output.Write(decompressedData);
         }
     }
 }
