@@ -49,7 +49,7 @@ namespace InsomniacArchive.FileTypes
             compSize = (int)input.Length - 0x24;
             rawsize = br.ReadInt32();
 
-            Compressed = compSize != rawsize;
+            Compressed = false; // compSize != rawsize;
 
             input.Position = 0x24;
 

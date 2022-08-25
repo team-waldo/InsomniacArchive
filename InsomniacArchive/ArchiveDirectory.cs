@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using InsomniacArchive.FileTypes;
 using InsomniacArchive.Hash;
+using InsomniacArchive.IO;
 
 namespace InsomniacArchive
 {
@@ -39,7 +40,10 @@ namespace InsomniacArchive
 
             foreach (int index in Toc.nameHashArray.Select((b, i) => b == hash ? i : -1).Where(i => i != -1))
             {
-                ExtractFile(index, Path.Combine(outputPath, $"{name}.{index}"));
+                string filePath = Path.Combine(outputPath, $"{name}.{index}");
+
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                ExtractFile(index, filePath);
             }
         }
 

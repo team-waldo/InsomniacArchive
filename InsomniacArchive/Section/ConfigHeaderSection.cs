@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InsomniacArchive.Config
+namespace InsomniacArchive.Section
 {
-    internal class ConfigHeaderSection : ConfigSection
+    internal class ConfigHeaderSection : SerializedObjectSection
     {
         public override uint Id => 0x4A128222u;
     }

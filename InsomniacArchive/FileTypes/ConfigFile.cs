@@ -1,4 +1,4 @@
-﻿using InsomniacArchive.Config;
+﻿using InsomniacArchive.Serialization;
 using InsomniacArchive.IO;
 using System;
 using System.Collections.Generic;

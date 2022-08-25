@@ -1,5 +1,4 @@
-﻿using InsomniacArchive.IO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InsomniacArchive.FileTypes
+namespace InsomniacArchive.IO
 {
     internal class ChunkedArchiveFile : IDisposable
     {
@@ -269,7 +268,7 @@ namespace InsomniacArchive.FileTypes
         //    {
         //        int inputIndex = offset;
         //        int dataLeft = count;
-                
+
         //        while (dataLeft > 0)
         //        {
         //            int chunkLeft = chunkSize - currentChunkPosition;
@@ -286,7 +285,7 @@ namespace InsomniacArchive.FileTypes
         //                currentChunkIndex++;
         //            }
         //        }
-                
+
         //        if (currentVirtualPosition == totalVirtualSize)
         //        {
         //            WriteCurrentChunk();

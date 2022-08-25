@@ -54,6 +54,17 @@ namespace InsomniacArchive.IO
             return arr;
         }
 
+        public string ReadStringElsewhere(int position)
+        {
+            long prevPos = BaseStream.Position;
+
+            BaseStream.Position = position;
+            string result = ReadStringToNull();
+
+            BaseStream.Position = prevPos;
+            return result;
+        }
+
         public string ReadFixedLengthAsciiString(int length)
         {
             byte[] bytes = ReadBytes(length);

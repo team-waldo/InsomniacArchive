@@ -8,24 +8,25 @@ using System.Threading.Tasks;
 
 using InsomniacArchive.FileTypes;
 using InsomniacArchive.IO;
-using InsomniacArchive.Section;
+using InsomniacArchive.Serialization;
 
-namespace InsomniacArchive.Config
+namespace InsomniacArchive.Section
 {
-    internal abstract class ConfigSection : BaseSection
+    internal abstract class SerializedObjectSection : BaseSection
     {
         public JsonObject RootObject;
 
+        public List<JsonObject> ExtraObjects = new();
+
         internal override void Read(DatBinaryReader br, DatSectionInfo sectionInfo)
         {
-#if DEBUG
             br.BaseStream.Position = sectionInfo.offset;
-            var data = br.ReadBytes(sectionInfo.size);
-            File.WriteAllBytes($"config/{GetType().Name}.bin", data);
-#endif
-            br.BaseStream.Position = sectionInfo.offset;
+            RootObject = ObjectSerializer.Deserialize(br);
 
-            RootObject = ConfigSerializer.Deserialize(br);
+            while (br.BaseStream.Position < sectionInfo.offset + sectionInfo.size)
+            {
+                ExtraObjects.Add(ObjectSerializer.Deserialize(br));
+            }
         }
 
         internal override DatSectionInfo Write(DatBinaryWriter bw)
