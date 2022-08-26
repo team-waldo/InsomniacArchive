@@ -4,22 +4,75 @@ using System.Text;
 
 namespace InsomniacArchive.Hash
 {
-    internal static class Crc32
+    public static class Crc32
     {
-        public static uint CalcHash(string data)
+        public static uint HashPath(string data)
         {
-            data = data.Replace('\\', '/');
             byte[] bytes = Encoding.ASCII.GetBytes(data);
-            return CalcHash(bytes);
+            return HashPath(bytes);
         }
 
-        public static uint CalcHash(byte[] data)
+        public static uint HashPath(byte[] data)
         {
+            if (data.Length == 0)
+                return 0u;
+
+            uint hash = 0xEDB88320;
+
+            hash = ~Crc32PathImpl(data, ~hash);
+
+            return hash;
+        }
+
+        public static uint Hash(string data)
+        {
+            return Hash(Encoding.UTF8.GetBytes(data));
+        }
+
+        public static uint Hash(byte[] data)
+        {
+            if (data.Length == 0)
+                return 0u;
+
             uint hash = 0xEDB88320;
 
             hash = ~Crc32Impl(data, ~hash);
 
             return hash;
+        }
+
+        private static uint Crc32PathImpl(byte[] data, uint crc)
+        {
+            crc = ~crc;
+
+            int n = 0;
+            while (n < data.Length && (data[n] == '/' || data[n] == '\\'))
+            {
+                n++;
+            }
+
+            while (n < data.Length)
+            {
+                byte b = data[n];
+
+                if (b == '/' || b == '\\')
+                {
+                    while (data[n + 1] == '/' || data[n + 1] == '\\')
+                    {
+                        n++;
+                    }
+                    b = (byte)'/';
+                }
+
+                if ('A' <= b && b <= 'Z')
+                    b += 32;
+
+                crc = (crc >> 8) ^ Crc32Table[(byte)(crc ^ b)];
+
+                n++;
+            }
+
+            return ~crc;
         }
 
         private static uint Crc32Impl(byte[] data, uint crc)

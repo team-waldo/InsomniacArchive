@@ -31,7 +31,7 @@ namespace InsomniacArchive.FileTypes
         internal void AddStringLiteral(string value)
         {
             StringLiterals.Add(value);
-            StringLiteralMap[Crc32.CalcHash(value)] = value;
+            StringLiteralMap[Crc32.Hash(value)] = value;
         }
 
         protected virtual void Load(DatBinaryReader br)

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace InsomniacArchive.FileTypes
 {
-    internal class ConfigFile : AssetFile
+    public class ConfigFile : AssetFile
     {
         protected override string Signature => "Config Built File";
 

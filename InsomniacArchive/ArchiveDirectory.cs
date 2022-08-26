@@ -36,7 +36,7 @@ namespace InsomniacArchive
 
         public void ExtractAll(string name, string outputPath)
         {
-            ulong hash = Crc64.CalcHash(name);
+            ulong hash = Crc64.HashPath(name);
 
             foreach (int index in Toc.nameHashArray.Select((b, i) => b == hash ? i : -1).Where(i => i != -1))
             {
@@ -49,7 +49,7 @@ namespace InsomniacArchive
 
         public List<int> GetAllAssetIndex(string name)
         {
-            ulong hash = Crc64.CalcHash(name);
+            ulong hash = Crc64.HashPath(name);
             return Toc.nameHashArray.Select((b, i) => b == hash ? i : -1).Where(i => i != -1).ToList();
         }
 

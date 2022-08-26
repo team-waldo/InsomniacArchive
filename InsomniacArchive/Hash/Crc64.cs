@@ -6,20 +6,74 @@ using System.Threading.Tasks;
 
 namespace InsomniacArchive.Hash
 {
-    internal class Crc64
+    public class Crc64
     {
-        public static ulong CalcHash(string data)
+        public static ulong HashPath(string data)
         {
-            return CalcHash(Encoding.UTF8.GetBytes(data.ToLowerInvariant().Replace('\\', '/')));
+            if (string.IsNullOrEmpty(data))
+                return 0;
+
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
+
+            return HashPath(bytes);
         }
 
-        public static ulong CalcHash(byte[] data)
+        public static ulong HashPath(byte[] data)
         {
+            if (data.Length == 0)
+                return 0;
+
+            ulong hash = 0xC96C5795D7870F42;
+
+            hash = ~Crc64PathImpl(data, ~hash);
+
+            return hash >> 2 | 0x8000000000000000;
+        }
+
+        public static ulong Hash(byte[] data)
+        {
+            if (data.Length == 0)
+                return 0;
+
             ulong hash = 0xC96C5795D7870F42;
 
             hash = ~Crc64Impl(data, ~hash);
 
             return hash >> 2 | 0x8000000000000000;
+        }
+
+        private static ulong Crc64PathImpl(byte[] data, ulong crc)
+        {
+            crc = ~crc;
+
+            int n = 0;
+            while (n < data.Length && (data[n] == '/' || data[n] == '\\'))
+            {
+                n++;
+            }
+
+            while (n < data.Length)
+            {
+                byte b = data[n];
+
+                if (b == '/' || b == '\\')
+                {
+                    while (data[n+1] == '/' || data[n+1] == '\\')
+                    {
+                        n++;
+                    }
+                    b = (byte)'/';
+                }
+
+                if ('A' <= b && b <= 'Z')
+                    b += 32;
+
+                crc = (crc >> 8) ^ Crc64Table[(byte)(crc ^ b)];
+
+                n++;
+            }
+
+            return ~crc;
         }
 
         private static ulong Crc64Impl(byte[] data, ulong crc)

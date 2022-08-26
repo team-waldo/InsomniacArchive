@@ -20,7 +20,7 @@ namespace InsomniacArchive.IO
 
         public void WriteHashedString(string value)
         {
-            uint hash = Crc32.CalcHash(value);
+            uint hash = Crc32.HashPath(value);
             Write(hash);
             datFile.AddStringLiteral(value);
         }
